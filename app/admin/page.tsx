@@ -15,6 +15,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -131,6 +133,8 @@ export default function AdminPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSubmitError(null);
+    setSubmitSuccess(false);
 
     try {
       // Generate unique student UUID
@@ -178,7 +182,7 @@ export default function AdminPage() {
           .insert(studentCourses);
       }
 
-      alert('Student added successfully!');
+      setSubmitSuccess(true);
       
       // Reset form
       setFormData({
@@ -192,9 +196,30 @@ export default function AdminPage() {
       
       // Refresh students list
       fetchStudents();
-    } catch (error) {
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSubmitSuccess(false), 3000);
+    } catch (error: any) {
       console.error('Error adding student:', error);
-      alert('Error adding student. Please try again.');
+      
+      // Parse error code and show user-friendly message
+      let errorMessage = 'Error adding student. Please try again.';
+      
+      if (error?.code === '23505') {
+        // Unique constraint violation
+        if (error?.message?.includes('student_id')) {
+          errorMessage = `A student with ID "${formData.studentId}" already exists. Please use a different Student ID.`;
+        } else {
+          errorMessage = 'This record already exists. Please check the information and try again.';
+        }
+      } else if (error?.code === '23502') {
+        // Not null constraint violation
+        errorMessage = 'Please fill in all required fields.';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      setSubmitError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -296,6 +321,20 @@ export default function AdminPage() {
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Add New Student</h2>
             
+            {/* Success Message */}
+            {submitSuccess && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
+                ✓ Student added successfully!
+              </div>
+            )}
+            
+            {/* Error Message */}
+            {submitError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+                {submitError}
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Name */}
               <div>
@@ -321,7 +360,10 @@ export default function AdminPage() {
                   type="text"
                   required
                   value={formData.studentId}
-                  onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, studentId: e.target.value });
+                    setSubmitError(null); // Clear error when user starts typing
+                  }}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent text-black"
                   placeholder="Enter student ID"
                 />
@@ -445,7 +487,16 @@ export default function AdminPage() {
                           <p className="text-sm text-gray-600">Session: {student.entry_session}</p>
                           {student.graduation_date && (
                             <p className="text-sm text-gray-600">
-                              Graduation: {new Date(student.graduation_date).toLocaleDateString()}
+                              Graduation: {(() => {
+                                // Parse date string as YYYY-MM-DD without timezone conversion
+                                const [year, month, day] = student.graduation_date.split('-').map(Number);
+                                const date = new Date(year, month - 1, day);
+                                return date.toLocaleDateString('en-US', { 
+                                  year: 'numeric', 
+                                  month: 'long', 
+                                  day: 'numeric' 
+                                });
+                              })()}
                             </p>
                           )}
                         </div>

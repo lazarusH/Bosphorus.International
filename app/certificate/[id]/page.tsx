@@ -123,11 +123,17 @@ export default function CertificatePage() {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return null;
-    const date = new Date(dateString);
-    const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-    const day = date.getDate();
-    const year = date.getFullYear();
-    return { month, day, year, full: `${month.charAt(0) + month.slice(1).toLowerCase()} ${day}, ${year}` };
+    // Parse date string as YYYY-MM-DD without timezone conversion
+    // This prevents timezone shifts when displaying dates
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed in JS Date
+    const monthName = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+    return { 
+      month: monthName, 
+      day, 
+      year, 
+      full: `${monthName.charAt(0) + monthName.slice(1).toLowerCase()} ${day}, ${year}` 
+    };
   };
 
   const graduationDate = formatDate(student.graduation_date);

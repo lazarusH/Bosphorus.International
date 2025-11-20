@@ -109,7 +109,16 @@ export default function StudentsPage() {
                     <p className="text-sm text-gray-600">Session: {student.entry_session}</p>
                     {student.graduation_date && (
                       <p className="text-sm text-gray-600 mt-1">
-                        Graduated: {new Date(student.graduation_date).toLocaleDateString()}
+                        Graduated: {(() => {
+                          // Parse date string as YYYY-MM-DD without timezone conversion
+                          const [year, month, day] = student.graduation_date.split('-').map(Number);
+                          const date = new Date(year, month - 1, day);
+                          return date.toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          });
+                        })()}
                       </p>
                     )}
                   </div>
