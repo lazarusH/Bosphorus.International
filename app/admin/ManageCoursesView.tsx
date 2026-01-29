@@ -174,14 +174,14 @@ export default function ManageCoursesView({ onCoursesChange }: ManageCoursesView
             />
 
             <div className="relative z-10">
-                <div className="p-10 md:p-14 border-b border-white/10 flex items-center justify-between">
-                    <div>
-                        <h2 className="text-4xl font-black text-white tracking-tighter uppercase text-center">Manage Courses</h2>
+                <div className="p-8 md:p-14 border-b border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="text-center md:text-left">
+                        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase leading-none">Manage Courses</h2>
                     </div>
                     {!isAdding && (
                         <button
                             onClick={() => setIsAdding(true)}
-                            className="flex items-center px-10 py-5 bg-white text-[#219EBC] rounded-[1.8rem] hover:bg-[#F0F7FA] transition shadow-xl shadow-black/10 font-black text-xs uppercase tracking-widest active:scale-95"
+                            className="w-full md:w-auto flex items-center justify-center px-10 py-5 bg-white text-[#219EBC] rounded-[1.8rem] hover:bg-[#F0F7FA] transition shadow-xl shadow-black/10 font-black text-[10px] md:text-xs uppercase tracking-widest active:scale-95 whitespace-nowrap"
                         >
                             <FiPlus className="mr-2 text-lg" />
                             Add Course
